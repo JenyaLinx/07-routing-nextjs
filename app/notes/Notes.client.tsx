@@ -2,65 +2,41 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { keepPreviousData } from "@tanstack/react-query";
-import { useDebouncedCallback } from "use-debounce";
-
-import { fetchNotes } from "../../lib/api";
-
-import Pagination from "../../components/Pagination/Pagination";
-import NoteList from "../../components/NoteList/NoteList";
-import SearchBox from "../../components/SearchBox/SearchBox";
-import Modal from "../../components/Modal/Modal";
-import NoteForm from "../../components/NoteForm/NoteForm";
-
+import { fetchNotes } from "@/lib/api";
+import NoteList from "@/components/NoteList/NoteList";
+import Pagination from "@/components/Pagination/Pagination";
+import SearchBox from "@/components/SearchBox/SearchBox";
+import NoteForm from "@/components/NoteForm/NoteForm";
 import css from "./Notes.module.css";
 
-export default function NotesClient() {
+interface Props {
+  initialTag?: string;
+}
+
+export default function NotesClient({ initialTag = "" }: Props) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["notes", page, search],
-    queryFn: () => fetchNotes(page, search),
-    placeholderData: keepPreviousData,
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["notes", page, search, initialTag],
+    queryFn: () => fetchNotes(page, search || initialTag),
   });
 
-  const debouncedSearch = useDebouncedCallback((value: string) => {
-    setSearch(value);
-    setPage(1);
-  }, 500);
-
-  const notes = data?.notes ?? [];
-  const totalPages = data?.totalPages ?? 0;
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error...</p>;
 
   return (
-    <div className={css.app}>
-      <header className={css.toolbar}>
-        <SearchBox onSearch={debouncedSearch} />
+    <div className={css.container}>
+      <SearchBox value={search} onChange={setSearch} />
+      <NoteForm onClose={() => {}} />
+      {data && <NoteList notes={data.notes} />}
+      {data && (
+        <Pagination
+  page={page}
+  totalPages={data.totalPages}
+  onChange={setPage}
+        />
 
-        {totalPages > 1 && (
-          <Pagination
-            totalPages={totalPages}
-            page={page}
-            onChange={setPage}
-          />
-        )}
-
-        <button className={css.button} onClick={() => setIsOpen(true)}>
-          Create note +
-        </button>
-      </header>
-
-      {isLoading && <p>Loading...</p>}
-      {isError && <p>Error</p>}
-
-      {notes.length > 0 && <NoteList notes={notes} />}
-
-      {isOpen && (
-        <Modal onClose={() => setIsOpen(false)}>
-          <NoteForm onClose={() => setIsOpen(false)} />
-        </Modal>
       )}
     </div>
   );
