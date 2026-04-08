@@ -1,15 +1,16 @@
 import { ReactNode } from "react";
 
-export default function FilterLayout({ children }: { children: ReactNode }) {
+export default function NotesLayout({
+  children,
+  sidebar,
+}: {
+  children: ReactNode;
+  sidebar: ReactNode;
+}) {
   return (
-    <div>
-      <header>
-        <h1>Notes Filter</h1>
-      </header>
+    <div style={{ display: "flex", gap: "20px" }}>
+      <aside>{sidebar}</aside>
       <main>{children}</main>
-      <footer>
-        <p>GoIT Homework</p>
-      </footer>
     </div>
   );
 }

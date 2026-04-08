@@ -1,41 +1,29 @@
 "use client";
 
-import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchNoteById } from "@/lib/api";
+import Modal from "@/components/Modal/Modal";
 import { useRouter } from "next/navigation";
 
-interface NotePreviewProps {
+interface Props {
   id: string;
 }
 
-export default function NotePreview({ id }: NotePreviewProps) {
-  const router = useRouter();
+export default function NotePreview({ id }: Props) {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["note", id],
+    queryFn: () => fetchNoteById(id),
+    refetchOnMount: false,
+  });
 
-  useEffect(() => {
-    console.log("Preview note ID:", id);
-  }, [id]);
+  if (isLoading) return <p>Loading...</p>;
+  if (isError || !data) return <p>Error</p>;
 
   return (
-    <div className="modal">
-      <div className="modal-content">
-        <h2>Note Preview</h2>
-        <p>ID: {id}</p>
-        <button onClick={() => router.back()}>Close</button>
-      </div>
-      <style jsx>{`
-        .modal {
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-        .modal-content {
-          background: white;
-          padding: 2rem;
-          border-radius: 8px;
-        }
-      `}</style>
-    </div>
+    <Modal onClose={() => history.back()}>
+      <h2>{data.title}</h2>
+      <p>{data.content}</p>
+      <p>{data.tag}</p>
+    </Modal>
   );
 }
