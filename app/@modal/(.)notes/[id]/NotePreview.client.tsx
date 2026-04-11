@@ -4,6 +4,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { fetchNoteById } from "@/lib/api";
 import Modal from "@/components/Modal/Modal";
+import css from "../NotePreview.module.css";
 
 export default function NotePreview() {
   const router = useRouter();
